@@ -20,7 +20,8 @@ The target of this project is to apply Data Wrangling techniques to clean an are
 - way: 44197
 
 ## Problems Encountered in the Map
-1. Auditing Street names of nodes and ways
+- Auditing Street names of nodes and ways.
+
 I began auditing the street names of nodes, ways, ways’ names and ways’ english names to find any pattern for writing it but there was no specific pattern.
 
 Here is a sample of the auditing results:
@@ -37,36 +38,47 @@ As you can see, there is no standard format for writing it, some have a type oth
 So, we can improve this part of data as following.
 
 - The usage of abbreviations, and its position in the name
+
 I worked on detecting the abbreviations, map it to the appropriate type, and put it at the end of the name.
 The expected types for the street name in Cairo, Egypt are [street, square, road].
 The expected abbreviations are [St,St. , Rd., Rd, Sq, Sq.]
 - Detecting street type abbreviations
+
 I began detecting all names that have any of the expected abbreviations in any position of it and here is a sample:
-'Rd': set(['Al Mansoureya Canal Rd’,'Al Masanea Rd','Al Nasr Rd’]),
-'Sq.': set(['Othman ibn Affan Sq.', 'Victoria Sq.']),
-'St': set(['13 St’,'21 St’]),
-'St.': set(['2 Soliman Abaza St.Mohandeseen, Giza','51 Khedr El Touny St.']),
-'st.': set(['Dr. Lashin st.','Future st.','Hamad Yassin st.’])
+ - 'Rd': set(['Al Mansoureya Canal Rd’,'Al Masanea Rd','Al Nasr Rd’])
+ - 'Sq.': set(['Othman ibn Affan Sq.', 'Victoria Sq.'])
+ - 'St': set(['13 St’,'21 St’]),
+ - 'St.': set(['2 Soliman Abaza St.Mohandeseen, Giza','51 Khedr El Touny St.']),
+ - 'st.': set(['Dr. Lashin st.','Future st.','Hamad Yassin st.’])
 - Mapping abbreviations to the appropriate name
+
 Here we map the abbreviations to the appropriate name using the
 following mapping
 mapping = { "St": "Street ","St.": "Street ","Sq":"Square", "Sq.":"Square","Rd":"Road","Rd.":"Road","st.":"Street"}
+
 - Correct street type position
+
 The last step is to put the mapped types at the end of the street name if it exists at the beginning
-St. Mark Cathedral => Mark Cathedral Street
-Tunis St. => Tunis Street
-Saint Mary and St. Marckos church => Saint Mary and Street Marckos church
+ - St. Mark Cathedral => Mark Cathedral Street
+ - Tunis St. => Tunis Street
+ - Saint Mary and St. Marckos church => Saint Mary and Street Marckos church
 
 2. Auditing postal codes
+
 Although this data is only about Cairo it contains data about others city like 6th October, Fifth Settlement, First Settlement, 10th Ramadan
+
 The reason for this may be because these cities were considered as part of Cairo and recently were formally separated.
+
 The reason to mention this issue is related to the range and format of the postal code in this file.
+
 The post codes are a 5 digits number and the range in Cairo is 11311 to 11668, but due to the issue I mentioned above we should include the range of the cities above in our valid range list.
+
 So the valid ranges are:
-Cairo 11311 to 11668
-5th Settlement 11835
-First Settlement 11865
-10th Ramadan 44629, 44635, 44637 6th October 12566
+
+- Cairo 11311 to 11668
+- 5th Settlement 11835
+- First Settlement 11865
+- 10th Ramadan 44629, 44635, 44637 6th October 12566
 
 Auditing Postal codes shows the following problems:
   - Inconsistent codes
@@ -99,6 +111,7 @@ db.cairo_egypt_map.aggregate([ {$group:{_id:"$created.user",count : { $sum : 1 }
 
 ## Additional Ideas
 - Top 10 amenities
+
 db.cairo_egypt_map.aggregate([ {$match:{amenity:{$exists:1}}},
 {$group:{_id:"$amenity",count : { $sum : 1 }}}, {$sort:{count:-1}},
 {$limit:10}
@@ -113,6 +126,7 @@ db.cairo_egypt_map.aggregate([ {$match:{amenity:{$exists:1}}},
 { "_id" : "fast_food", "count" : 101 } { "_id" : "pharmacy", "count" : 84 }
 
 - Top 5 cuisines
+
 db.cairo_egypt_map.aggregate([ {$match:{amenity:{$exists:1},
 cuisine:{$exists:1},”amenity”:"restaurant"}}, {$group:{_id:"$cuisine",count : { $sum : 1 }}}, {$sort:{count:-1}},
 {$limit:5}
@@ -123,11 +137,13 @@ cuisine:{$exists:1},”amenity”:"restaurant"}}, {$group:{_id:"$cuisine",count 
 { "_id" : "burger", "count" : 6 }
 
 - Top 3 ways
+
 db.cairo_egypt_map.aggregate([ {$match:{“type":"way",name:{$exists:1}}}, {$group:{_id:"$name",count : { $sum : 1 }}}, {$sort:{count:-1}},
 {$limit:3} ]){ "_id" : "!"ل)"(' $ل%$ئ$", "count" : 93 }
 { "_id" : "لقا3"2 - $لاسكن%"(ة $ل,"$عى$ '(")", "count" : 60 } { "_id" : "6(ك8"ن(7 $لن", "count" : 48 }
 
 - Top 5 cafes
+
 db.cairo_egypt_map.aggregate([
 {$match:{amenity:{$exists:1},name:{$exists:1},”amenity":"cafe"}}, {$group:{_id:"$name",count : { $sum : 1 }}},
 {$sort:{count:-1}},
